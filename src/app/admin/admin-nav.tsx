@@ -8,6 +8,7 @@ const tabs = [
   { href: "/admin/venues", label: "אולמות 🏟️" },
   { href: "/admin/events", label: "הופעות 🎤" },
   { href: "/admin/shows", label: "מופעים 📅" },
+  { href: "/admin/listings", label: "כרטיסים 🎟️" },
 ];
 
 export function AdminNav() {
