@@ -39,6 +39,7 @@ export default async function AccountPage() {
 
         <div className="cta-row" style={{ justifyContent: "flex-start", marginTop: 18 }}>
           <Link href="/account/requests" className="btn ghost">הבקשות שלי</Link>
+          <Link href="/account/trades" className="btn ghost">העסקאות שלי</Link>
           {user.role === "admin" ? (
             <Link href="/admin/settings" className="btn ghost">מסך ניהול</Link>
           ) : null}

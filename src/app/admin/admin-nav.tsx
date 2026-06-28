@@ -10,6 +10,7 @@ const tabs = [
   { href: "/admin/shows", label: "מופעים 📅" },
   { href: "/admin/listings", label: "כרטיסים 🎟️" },
   { href: "/admin/requests", label: "בקשות 🔎" },
+  { href: "/admin/trades", label: "עסקאות 🤝" },
 ];
 
 export function AdminNav() {
