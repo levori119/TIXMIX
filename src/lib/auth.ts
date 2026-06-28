@@ -94,6 +94,42 @@ export async function getSession(): Promise<SessionPayload | null> {
   return token ? decode(token) : null;
 }
 
+/** The currently logged-in user (full row minus hash), or null. */
+export async function currentUser(): Promise<
+  { id: number; role: string; displayName: string; email: string } | null
+> {
+  const session = await getSession();
+  if (!session) return null;
+  const rows = await db
+    .select({
+      id: users.id,
+      role: users.role,
+      displayName: users.displayName,
+      email: users.email,
+    })
+    .from(users)
+    .where(eq(users.id, session.uid));
+  return rows[0] ?? null;
+}
+
+/** Create a new client account; throws on duplicate email. */
+export async function registerClient(
+  email: string,
+  password: string,
+  displayName: string,
+): Promise<{ id: number; role: string }> {
+  const [row] = await db
+    .insert(users)
+    .values({
+      email: email.toLowerCase().trim(),
+      passwordHash: hashPassword(password),
+      displayName: displayName.trim(),
+      role: "client",
+    })
+    .returning({ id: users.id, role: users.role });
+  return row;
+}
+
 /** Authenticate by email + password against the users table. */
 export async function authenticate(
   email: string,

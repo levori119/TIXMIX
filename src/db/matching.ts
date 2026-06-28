@@ -1,5 +1,5 @@
 import "server-only";
-import { and, eq, asc, gt, gte, sql } from "drizzle-orm";
+import { and, eq, asc, desc, gt, gte, sql } from "drizzle-orm";
 import { db } from "./index";
 import {
   buyRequests,
@@ -218,6 +218,30 @@ export function listBuyRequests() {
     .innerJoin(venues, eq(shows.venueId, venues.id))
     .leftJoin(matches, eq(matches.buyRequestId, buyRequests.id))
     .orderBy(asc(buyRequests.seq));
+}
+
+export function listRequestsForBuyer(buyerId: number) {
+  return db
+    .select({
+      id: buyRequests.id,
+      seq: buyRequests.seq,
+      eventName: events.name,
+      venueName: venues.name,
+      startsAt: shows.startsAt,
+      priceMaxAgorot: buyRequests.priceMaxAgorot,
+      qtyMin: buyRequests.qtyMin,
+      qtyMax: buyRequests.qtyMax,
+      status: buyRequests.status,
+      matchedQty: matches.qty,
+      matchedUnitAgorot: matches.agreedUnitPriceAgorot,
+    })
+    .from(buyRequests)
+    .innerJoin(shows, eq(buyRequests.showId, shows.id))
+    .innerJoin(events, eq(shows.eventId, events.id))
+    .innerJoin(venues, eq(shows.venueId, venues.id))
+    .leftJoin(matches, eq(matches.buyRequestId, buyRequests.id))
+    .where(eq(buyRequests.buyerId, buyerId))
+    .orderBy(desc(buyRequests.seq));
 }
 
 export async function cancelBuyRequest(id: number) {

@@ -20,10 +20,8 @@ export async function loginAction(
   if (!user) {
     return { error: "אימייל או סיסמה שגויים." };
   }
-  if (user.role !== "admin") {
-    return { error: "למשתמש זה אין הרשאת ניהול." };
-  }
 
   await createSession(user.id, user.role);
-  redirect("/admin/settings");
+  // admins land in the dashboard; clients return to browsing
+  redirect(user.role === "admin" ? "/admin/settings" : "/browse");
 }

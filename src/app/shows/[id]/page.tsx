@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getShow, getActiveListingsForShow } from "@/db/public";
+import { currentUser } from "@/lib/auth";
+import { BuyBox } from "./buy-box";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +34,11 @@ export default async function ShowDetailPage({
   if (!show) notFound();
 
   const listings = await getActiveListingsForShow(showId);
+  const user = await currentUser();
+  const fromPrice =
+    listings.length > 0
+      ? `₪${Math.min(...listings.map((l) => l.basePriceAgorot ?? Infinity)) / 100}`
+      : "";
 
   return (
     <main className="container narrow">
@@ -77,16 +84,28 @@ export default async function ShowDetailPage({
                   {l.note ? <span className="sub" style={{ marginTop: 4 }}>“{l.note}”</span> : null}
                   <span className="sub" style={{ marginTop: 4 }}>מוכר: {l.sellerName}</span>
                 </div>
-                <span className="price-badge">בקרוב: קנייה</span>
               </div>
             ))}
           </div>
         )}
       </div>
 
-      <p className="hint" style={{ marginTop: 14 }}>
-        💡 מנגנון הקנייה (בקשה + תור First-Come-First-Served) בבנייה — זהו השלב הבא.
-      </p>
+      <div className="card">
+        {user ? (
+          <BuyBox showId={showId} fromPrice={fromPrice} />
+        ) : (
+          <>
+            <p className="section-title">רוצה לקנות?</p>
+            <p className="muted" style={{ marginBottom: 14 }}>
+              התחבר או הירשם כדי לשלוח בקשת קנייה ולהיכנס לתור ההוגן.
+            </p>
+            <div className="cta-row" style={{ justifyContent: "flex-start" }}>
+              <Link href="/login" className="btn">כניסה</Link>
+              <Link href="/register" className="btn ghost">הרשמה</Link>
+            </div>
+          </>
+        )}
+      </div>
     </main>
   );
 }

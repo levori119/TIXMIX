@@ -27,9 +27,9 @@ export default function RootLayout({
             <span className="mark">TixMix</span>
           </a>
           <div className="nav-links">
-            <a href="/">בית</a>
             <a href="/browse">כרטיסים</a>
-            <a href="/admin/settings">ניהול</a>
+            <a href="/account">החשבון שלי</a>
+            <a href="/login">כניסה</a>
           </div>
         </nav>
         {children}
