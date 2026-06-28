@@ -1,13 +1,22 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
-import { createListingAction, type FormState } from "./actions";
 
-const initial: FormState = { ok: false, message: "" };
+export type ListingFormState = { ok: boolean; message: string };
 type Option = { id: number; label: string };
 
-export function ListingForm({ shows }: { shows: Option[] }) {
-  const [state, action, pending] = useActionState(createListingAction, initial);
+export function ListingForm({
+  action,
+  shows,
+  title,
+  submitLabel,
+}: {
+  action: (prev: ListingFormState, formData: FormData) => Promise<ListingFormState>;
+  shows: Option[];
+  title: string;
+  submitLabel: string;
+}) {
+  const [state, formAction, pending] = useActionState(action, { ok: false, message: "" });
   const formRef = useRef<HTMLFormElement>(null);
   const [tiers, setTiers] = useState<{ qty: string; price: string }[]>([]);
 
@@ -19,12 +28,12 @@ export function ListingForm({ shows }: { shows: Option[] }) {
   }, [state]);
 
   if (shows.length === 0) {
-    return <p className="empty">כדי לפרסם כרטיס צריך מופע. הוסף מופע בלשונית 📅.</p>;
+    return <p className="empty">אין כרגע מופעים זמינים למכירה. בדוק שוב מאוחר יותר.</p>;
   }
 
   return (
-    <form action={action} ref={formRef}>
-      <p className="section-title">פרסום כרטיס למכירה</p>
+    <form action={formAction} ref={formRef}>
+      <p className="section-title">{title}</p>
 
       <div className="row">
         <label className="label" htmlFor="l-show">מופע *</label>
@@ -77,16 +86,12 @@ export function ListingForm({ shows }: { shows: Option[] }) {
         <p className="hint" style={{ marginTop: 0 }}>הנחה בקנייה מרובה — החל מכמות X, המחיר לכרטיס הוא Y.</p>
         {tiers.map((t, i) => (
           <div key={i} className="grid-2" style={{ marginTop: 8 }}>
-            <input
-              className="input" name="tierQty" type="number" min="2" placeholder="החל מכמות"
+            <input className="input" name="tierQty" type="number" min="2" placeholder="החל מכמות"
               value={t.qty}
-              onChange={(e) => setTiers((p) => p.map((x, j) => (j === i ? { ...x, qty: e.target.value } : x)))}
-            />
-            <input
-              className="input" name="tierPrice" type="number" min="0" step="0.01" placeholder="מחיר לכרטיס (₪)"
+              onChange={(e) => setTiers((p) => p.map((x, j) => (j === i ? { ...x, qty: e.target.value } : x)))} />
+            <input className="input" name="tierPrice" type="number" min="0" step="0.01" placeholder="מחיר לכרטיס (₪)"
               value={t.price}
-              onChange={(e) => setTiers((p) => p.map((x, j) => (j === i ? { ...x, price: e.target.value } : x)))}
-            />
+              onChange={(e) => setTiers((p) => p.map((x, j) => (j === i ? { ...x, price: e.target.value } : x)))} />
           </div>
         ))}
         <div className="chips" style={{ marginTop: 10 }}>
@@ -107,7 +112,7 @@ export function ListingForm({ shows }: { shows: Option[] }) {
       </div>
 
       <button className="btn" type="submit" disabled={pending}>
-        {pending ? "מפרסם…" : "🎟️ פרסום למכירה"}
+        {pending ? "מפרסם…" : submitLabel}
       </button>
       {state.message ? (
         <div className={`notice ${state.ok ? "ok" : "err"}`} role="status">

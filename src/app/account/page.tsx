@@ -38,8 +38,11 @@ export default async function AccountPage() {
         <p className="muted">סוג חשבון: {user.role === "admin" ? "מנהל 🛡️" : "לקוח"}</p>
 
         <div className="cta-row" style={{ justifyContent: "flex-start", marginTop: 18 }}>
+          <Link href="/sell" className="btn ghost">מכירת כרטיס</Link>
+          <Link href="/account/listings" className="btn ghost">הכרטיסים שלי</Link>
           <Link href="/account/requests" className="btn ghost">הבקשות שלי</Link>
-          <Link href="/account/trades" className="btn ghost">העסקאות שלי</Link>
+          <Link href="/account/trades" className="btn ghost">העסקאות שלי (קנייה)</Link>
+          <Link href="/account/sales" className="btn ghost">המכירות שלי</Link>
           {user.role === "admin" ? (
             <Link href="/admin/settings" className="btn ghost">מסך ניהול</Link>
           ) : null}

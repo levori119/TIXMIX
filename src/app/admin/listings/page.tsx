@@ -1,7 +1,7 @@
 import { listListings } from "@/db/listings";
 import { listShows } from "@/db/catalog";
-import { deleteListingAction } from "./actions";
-import { ListingForm } from "./listing-form";
+import { createListingAction, deleteListingAction } from "./actions";
+import { ListingForm } from "@/app/_components/listing-form";
 
 export const dynamic = "force-dynamic";
 
@@ -42,7 +42,12 @@ export default async function ListingsPage() {
       </div>
 
       <div className="card">
-        <ListingForm shows={showOptions} />
+        <ListingForm
+          action={createListingAction}
+          shows={showOptions}
+          title="פרסום כרטיס למכירה"
+          submitLabel="🎟️ פרסום למכירה"
+        />
       </div>
 
       <div className="card">

@@ -95,6 +95,43 @@ export function listTiers(listingId: number) {
     .where(eq(listingPriceTiers.listingId, listingId));
 }
 
+/** Listings owned by a given seller (with show info + base price). */
+export function listListingsForSeller(sellerId: number) {
+  return db
+    .select({
+      id: listings.id,
+      eventName: events.name,
+      venueName: venues.name,
+      startsAt: shows.startsAt,
+      priceType: listings.priceType,
+      deliveryType: listings.deliveryType,
+      quantityTotal: listings.quantityTotal,
+      quantityAvailable: listings.quantityAvailable,
+      status: listings.status,
+      basePriceAgorot: listingPriceTiers.unitPriceAgorot,
+    })
+    .from(listings)
+    .innerJoin(shows, eq(listings.showId, shows.id))
+    .innerJoin(events, eq(shows.eventId, events.id))
+    .innerJoin(venues, eq(shows.venueId, venues.id))
+    .leftJoin(
+      listingPriceTiers,
+      and(eq(listingPriceTiers.listingId, listings.id), eq(listingPriceTiers.minQty, 1)),
+    )
+    .where(eq(listings.sellerId, sellerId))
+    .orderBy(desc(listings.createdAt));
+}
+
+/** Seller cancels their own active listing (keeps history; removed from sale/matching). */
+export async function cancelListing(id: number, sellerId: number) {
+  await db
+    .update(listings)
+    .set({ status: "cancelled" })
+    .where(
+      and(eq(listings.id, id), eq(listings.sellerId, sellerId), eq(listings.status, "active")),
+    );
+}
+
 export async function deleteListing(id: number) {
   await db.transaction(async (tx) => {
     await tx.delete(listingPriceTiers).where(eq(listingPriceTiers.listingId, id));
