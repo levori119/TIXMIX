@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { logoutAction } from "./actions";
+import { AdminNav } from "./admin-nav";
 
 // Every route under /admin requires an authenticated admin session.
 export default async function AdminLayout({
@@ -22,6 +23,9 @@ export default async function AdminLayout({
             יציאה
           </button>
         </form>
+      </div>
+      <div className="container narrow" style={{ paddingBottom: 0 }}>
+        <AdminNav />
       </div>
       {children}
     </>
