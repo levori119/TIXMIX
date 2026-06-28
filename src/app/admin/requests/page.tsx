@@ -2,6 +2,7 @@ import { listBuyRequests, listBuyers } from "@/db/matching";
 import { listShows } from "@/db/catalog";
 import { cancelRequestAction } from "./actions";
 import { RequestForm } from "./request-form";
+import { toShowOptions } from "@/lib/show-options";
 
 export const dynamic = "force-dynamic";
 
@@ -25,10 +26,7 @@ export default async function RequestsPage() {
     listShows(),
   ]);
 
-  const showOptions = shows.map((s) => ({
-    id: s.id,
-    label: `${s.eventName} · ${s.venueName} · ${new Date(s.startsAt).toLocaleDateString("he-IL")}`,
-  }));
+  const showOptions = toShowOptions(shows);
   const buyerOptions = buyers.map((b) => ({ id: b.id, label: b.name }));
 
   return (

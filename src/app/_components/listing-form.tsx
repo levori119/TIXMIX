@@ -1,9 +1,9 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
+import { ShowPicker, type ShowOption } from "./show-picker";
 
 export type ListingFormState = { ok: boolean; message: string };
-type Option = { id: number; label: string };
 
 export function ListingForm({
   action,
@@ -12,7 +12,7 @@ export function ListingForm({
   submitLabel,
 }: {
   action: (prev: ListingFormState, formData: FormData) => Promise<ListingFormState>;
-  shows: Option[];
+  shows: ShowOption[];
   title: string;
   submitLabel: string;
 }) {
@@ -36,13 +36,8 @@ export function ListingForm({
       <p className="section-title">{title}</p>
 
       <div className="row">
-        <label className="label" htmlFor="l-show">מופע *</label>
-        <select className="input" id="l-show" name="showId" required defaultValue="">
-          <option value="" disabled>בחר מופע…</option>
-          {shows.map((s) => (
-            <option key={s.id} value={s.id}>{s.label}</option>
-          ))}
-        </select>
+        <label className="label">מופע *</label>
+        <ShowPicker name="showId" shows={shows} />
       </div>
 
       <div className="grid-2">

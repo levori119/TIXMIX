@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useRef } from "react";
 import { createRequestAction, type FormState } from "./actions";
+import { ShowPicker, type ShowOption } from "@/app/_components/show-picker";
 
 const initial: FormState = { ok: false, message: "" };
 type Option = { id: number; label: string };
@@ -11,7 +12,7 @@ export function RequestForm({
   shows,
 }: {
   buyers: Option[];
-  shows: Option[];
+  shows: ShowOption[];
 }) {
   const [state, action, pending] = useActionState(createRequestAction, initial);
   const formRef = useRef<HTMLFormElement>(null);
@@ -43,13 +44,8 @@ export function RequestForm({
           </select>
         </div>
         <div className="row">
-          <label className="label" htmlFor="r-show">מופע *</label>
-          <select className="input" id="r-show" name="showId" required defaultValue="">
-            <option value="" disabled>בחר מופע…</option>
-            {shows.map((s) => (
-              <option key={s.id} value={s.id}>{s.label}</option>
-            ))}
-          </select>
+          <label className="label">מופע *</label>
+          <ShowPicker name="showId" shows={shows} />
         </div>
         <div className="row">
           <label className="label" htmlFor="r-pmin">מחיר מינ' לכרטיס (₪)</label>

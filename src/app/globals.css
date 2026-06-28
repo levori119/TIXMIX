@@ -21,7 +21,12 @@
   /* scale */
   --radius: 20px;
   --radius-sm: 12px;
+
+  /* render native controls (select dropdowns, date pickers, scrollbars) in dark */
+  color-scheme: dark;
 }
+
+select.input option { background: var(--surface-solid); color: var(--text); }
 
 * { box-sizing: border-box; }
 
@@ -297,6 +302,33 @@ select.input { appearance: none; }
   display: inline-block; font-weight: 800; font-size: 14px; color: #fff; white-space: nowrap;
   background: var(--grad); padding: 7px 14px; border-radius: 999px;
 }
+
+/* searchable show picker */
+.picker { position: relative; }
+.picker-btn {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  text-align: right; cursor: pointer; width: 100%;
+}
+.picker-caret { color: var(--muted); flex-shrink: 0; }
+.picker-pop {
+  position: absolute; z-index: 60; top: calc(100% + 6px); left: 0; right: 0;
+  background: var(--surface-solid);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 10px; display: flex; flex-direction: column; gap: 8px;
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.85);
+}
+.picker-filters { display: flex; gap: 8px; }
+.picker-filters .input { padding: 10px 12px; font-size: 15px; }
+.picker-filters input[type="date"] { max-width: 160px; }
+.picker-list { max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
+.picker-item {
+  text-align: right; background: transparent; border: 1px solid transparent;
+  border-radius: 10px; padding: 10px 12px; cursor: pointer;
+  display: flex; flex-direction: column; gap: 2px; color: var(--text); font-family: inherit;
+}
+.picker-item:hover { background: rgba(123, 92, 255, 0.18); border-color: var(--border); }
+.picker-item .title { font-weight: 700; }
+.picker-item .sub { color: var(--muted); font-size: 13px; }
 
 .muted { color: var(--muted); }
 

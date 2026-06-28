@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/auth";
 import { listShows } from "@/db/catalog";
 import { ListingForm } from "@/app/_components/listing-form";
+import { toShowOptions } from "@/lib/show-options";
 import { createMyListingAction } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -12,10 +13,7 @@ export default async function SellPage() {
   if (!user) redirect("/login");
 
   const shows = await listShows();
-  const showOptions = shows.map((s) => ({
-    id: s.id,
-    label: `${s.eventName} · ${s.venueName} · ${new Date(s.startsAt).toLocaleDateString("he-IL")}`,
-  }));
+  const showOptions = toShowOptions(shows);
 
   return (
     <main className="container narrow">

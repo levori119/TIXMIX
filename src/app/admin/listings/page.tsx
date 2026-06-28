@@ -2,6 +2,7 @@ import { listListings } from "@/db/listings";
 import { listShows } from "@/db/catalog";
 import { createListingAction, deleteListingAction } from "./actions";
 import { ListingForm } from "@/app/_components/listing-form";
+import { toShowOptions } from "@/lib/show-options";
 
 export const dynamic = "force-dynamic";
 
@@ -29,10 +30,7 @@ function ils(agorot: number | null) {
 export default async function ListingsPage() {
   const [rows, shows] = await Promise.all([listListings(), listShows()]);
 
-  const showOptions = shows.map((s) => ({
-    id: s.id,
-    label: `${s.eventName} · ${s.venueName} · ${new Date(s.startsAt).toLocaleDateString("he-IL")}`,
-  }));
+  const showOptions = toShowOptions(shows);
 
   return (
     <main className="container narrow">
