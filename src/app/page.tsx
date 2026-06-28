@@ -45,6 +45,18 @@ export default function Home() {
             איך זה עובד?
           </a>
         </div>
+
+        <div className="hero-video">
+          <video
+            src="/intro.mp4"
+            autoPlay
+            muted
+            loop
+            playsInline
+            controls
+            preload="metadata"
+          />
+        </div>
       </section>
 
       <section id="how" className="grid">

@@ -112,6 +112,17 @@ body {
 
 .cta-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
 
+.hero-video {
+  margin: 40px auto 0;
+  max-width: 760px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: 0 30px 80px -30px rgba(123, 92, 255, 0.6);
+  background: #000;
+}
+.hero-video video { display: block; width: 100%; height: auto; }
+
 /* ---------- buttons ---------- */
 .btn {
   display: inline-flex;
