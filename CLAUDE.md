@@ -77,7 +77,8 @@ Track unknowns here instead of guessing. Resolve with research or by asking the 
 * **Ticket authenticity verification** — no known public issuer API; assume a manual Admin-review fallback until proven otherwise.
 * ~~App framework~~ — **DECIDED: Next.js full-stack** (see §6). ORM (Drizzle vs Prisma) to confirm during Phase 1.
 * **Legal/regulatory** — Israeli ticket-resale / anti-scalping law, consumer protection, escrow & payment licensing — must be researched.
-* **Commission rate** — exact percentage TBD.
+* ~~Commission rate~~ — **RESOLVED**: commission is now dynamic, editable from the Admin screen (`platform_settings`, default 2.50%).
+* ~~Admin access control~~ — **RESOLVED**: `/admin/*` is protected by a server-side session guard (scrypt password hashing + HMAC-signed httpOnly cookie). Requires `SESSION_SECRET` env var; create admins via `npm run admin:create`. Future: rate-limiting / lockout on login, and password-reset flow.
 
 ---
 

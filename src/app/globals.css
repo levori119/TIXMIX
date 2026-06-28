@@ -238,6 +238,15 @@ body {
   color: #ffd766; font-size: 13px;
 }
 
+.adminbar {
+  display: flex; align-items: center; justify-content: space-between;
+  max-width: 640px; margin: 18px auto -8px; padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--surface); border: 1px solid var(--border);
+  font-size: 14px;
+}
+.adminbar form { margin: 0; }
+
 .muted { color: var(--muted); }
 
 @keyframes pop { from { transform: scale(0.96); opacity: 0; } to { transform: scale(1); opacity: 1; } }

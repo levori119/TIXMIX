@@ -33,10 +33,6 @@ export default async function AdminSettingsPage() {
           עודכן לאחרונה: {new Date(settings.updatedAt).toLocaleString("he-IL")}
         </p>
       </div>
-
-      <div className="warnbar">
-        ⚠️ מסך זה עדיין אינו מוגן בהרשאות — הוספת אימות אדמין היא המשימה הבאה (CLAUDE.md §8).
-      </div>
     </main>
   );
 }
