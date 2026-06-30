@@ -25,33 +25,45 @@ export default async function AccountPage() {
     );
   }
 
+  const tiles = [
+    { href: "/browse", te: "🎟️", tt: "גלה כרטיסים", ts: "מצא הופעות" },
+    { href: "/sell", te: "➕", tt: "מכירת כרטיס", ts: "פרסם למכירה" },
+    { href: "/account/payment", te: "💳", tt: "אמצעי תשלום", ts: "כרטיס ואימות" },
+    { href: "/account/listings", te: "📋", tt: "הכרטיסים שלי", ts: "ההיצע שלך" },
+    { href: "/account/requests", te: "🎯", tt: "הבקשות שלי", ts: "בתור לקנייה" },
+    { href: "/account/trades", te: "🤝", tt: "עסקאות קנייה", ts: "תשלום ואישור" },
+    { href: "/account/sales", te: "💰", tt: "המכירות שלי", ts: "מסירת כרטיס" },
+  ];
+
   return (
-    <main className="container narrow">
-      <div className="page-head">
-        <span className="crumb">TixMix</span>
-        <h1 className="page-title">החשבון שלי 👤</h1>
-      </div>
-
-      <div className="card">
-        <p className="big">{user.displayName}</p>
-        <p className="muted">{user.email}</p>
-        <p className="muted">סוג חשבון: {user.role === "admin" ? "מנהל 🛡️" : "לקוח"}</p>
-
-        <div className="cta-row" style={{ justifyContent: "flex-start", marginTop: 18 }}>
-          <Link href="/account/payment" className="btn ghost">אמצעי תשלום 💳</Link>
-          <Link href="/sell" className="btn ghost">מכירת כרטיס</Link>
-          <Link href="/account/listings" className="btn ghost">הכרטיסים שלי</Link>
-          <Link href="/account/requests" className="btn ghost">הבקשות שלי</Link>
-          <Link href="/account/trades" className="btn ghost">העסקאות שלי (קנייה)</Link>
-          <Link href="/account/sales" className="btn ghost">המכירות שלי</Link>
-          {user.role === "admin" ? (
-            <Link href="/admin/settings" className="btn ghost">מסך ניהול</Link>
-          ) : null}
-          <form action={logoutToHomeAction}>
-            <button type="submit" className="btn ghost">יציאה</button>
-          </form>
+    <main className="container">
+      <div className="greet">
+        <div className="hi">היי {user.displayName.split(" ")[0]} 👋</div>
+        <div className="tag">
+          {user.email} · {user.role === "admin" ? "מנהל 🛡️" : "חשבון לקוח"}
         </div>
       </div>
+
+      <div className="tiles">
+        {tiles.map((t) => (
+          <Link key={t.href} href={t.href} className="tile">
+            <span className="te">{t.te}</span>
+            <span className="tt">{t.tt}</span>
+            <span className="ts">{t.ts}</span>
+          </Link>
+        ))}
+        {user.role === "admin" ? (
+          <Link href="/admin/settings" className="tile">
+            <span className="te">🛡️</span>
+            <span className="tt">מסך ניהול</span>
+            <span className="ts">אדמין</span>
+          </Link>
+        ) : null}
+      </div>
+
+      <form action={logoutToHomeAction} style={{ marginTop: 18 }}>
+        <button type="submit" className="btn ghost">יציאה מהחשבון</button>
+      </form>
     </main>
   );
 }

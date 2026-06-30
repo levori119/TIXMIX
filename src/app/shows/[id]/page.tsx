@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getShow, getActiveListingsForShow } from "@/db/public";
 import { currentUser } from "@/lib/auth";
+import { coverGradient } from "@/lib/cover";
 import { BuyBox } from "./buy-box";
 
 export const dynamic = "force-dynamic";
@@ -40,21 +41,26 @@ export default async function ShowDetailPage({
       ? `₪${Math.min(...listings.map((l) => l.basePriceAgorot ?? Infinity)) / 100}`
       : "";
 
+  const when = new Date(show.startsAt);
+
   return (
     <main className="container narrow">
-      <div className="page-head">
-        <Link href="/browse" className="crumb">← חזרה לכל הכרטיסים</Link>
-        <h1 className="page-title">{show.eventName}</h1>
-        <p className="muted">
-          {[show.artist].filter(Boolean).join("")}
-          {show.artist ? " · " : ""}
-          {show.venueName}
-          {show.city ? `, ${show.city}` : ""} ·{" "}
-          {new Date(show.startsAt).toLocaleString("he-IL", {
-            dateStyle: "full",
-            timeStyle: "short",
-          })}
-        </p>
+      <Link href="/browse" className="crumb" style={{ display: "inline-block", marginTop: 8 }}>
+        ← חזרה לגילוי
+      </Link>
+
+      <div className="show-hero" style={{ background: coverGradient(show.eventName) }}>
+        <div className="cap">
+          <h1>{show.eventName}</h1>
+          <div className="meta-row">
+            {show.artist ? <span className="metachip">🎤 {show.artist}</span> : null}
+            <span className="metachip">📍 {show.venueName}{show.city ? `, ${show.city}` : ""}</span>
+            <span className="metachip">
+              📅 {when.toLocaleDateString("he-IL", { day: "numeric", month: "long" })} ·{" "}
+              {when.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" })}
+            </span>
+          </div>
+        </div>
       </div>
 
       <div className="card">

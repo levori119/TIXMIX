@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Rubik } from "next/font/google";
 import "./globals.css";
+import { BottomNav } from "./_components/bottom-nav";
 
 const rubik = Rubik({
   subsets: ["hebrew", "latin"],
@@ -34,6 +35,7 @@ export default function RootLayout({
           </div>
         </nav>
         {children}
+        <BottomNav />
       </body>
     </html>
   );

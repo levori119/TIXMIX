@@ -1,51 +1,42 @@
-import Link from "next/link";
-import { listOpenShows } from "@/db/public";
+import { listUpcomingShows } from "@/db/public";
+import { currentUser } from "@/lib/auth";
+import { BrowseClient, type BrowseShow } from "./browse-client";
 
 export const dynamic = "force-dynamic";
 
-function ils(agorot: number | null) {
-  if (agorot == null) return "—";
-  return `₪${Math.round(agorot / 100).toLocaleString("he-IL")}`;
-}
+const MONTHS = [
+  "ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני",
+  "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר",
+];
 
 export default async function BrowsePage() {
-  const shows = await listOpenShows();
+  const [rows, user] = await Promise.all([listUpcomingShows(), currentUser()]);
+
+  const shows: BrowseShow[] = rows.map((r) => {
+    const d = new Date(r.startsAt);
+    return {
+      id: r.id,
+      eventName: r.eventName,
+      venueName: r.venueName,
+      city: r.city,
+      day: String(d.getDate()),
+      month: MONTHS[d.getMonth()],
+      dateDisplay: d.toLocaleDateString("he-IL"),
+      fromPriceAgorot: r.fromPriceAgorot,
+      available: Number(r.available),
+    };
+  });
 
   return (
     <main className="container">
-      <div className="page-head">
-        <span className="crumb">TixMix</span>
-        <h1 className="page-title">כרטיסים זמינים 🎟️</h1>
+      <div className="greet">
+        <div className="hi">
+          {user ? <>היי {user.displayName.split(" ")[0]} <span className="wave">👋</span></> : <>גלה הופעות <span className="wave">🎉</span></>}
+        </div>
+        <div className="tag">{shows.length} הופעות קרובות · מצא את הכרטיס שלך</div>
       </div>
 
-      {shows.length === 0 ? (
-        <div className="card">
-          <p className="empty">אין כרגע כרטיסים למכירה. בקרוב יהיו 🎶</p>
-        </div>
-      ) : (
-        <div className="grid">
-          {shows.map((s) => (
-            <Link key={s.id} href={`/shows/${s.id}`} className="card showcard">
-              <div className="pill">{s.city ?? "—"}</div>
-              <h3>{s.eventName}</h3>
-              <p className="muted" style={{ margin: "4px 0 14px" }}>
-                {s.venueName} ·{" "}
-                {new Date(s.startsAt).toLocaleDateString("he-IL", {
-                  day: "numeric",
-                  month: "short",
-                  year: "numeric",
-                })}
-              </p>
-              <div className="showcard-foot">
-                <span className="price-badge">החל מ-{ils(s.fromPriceAgorot)}</span>
-                <span className="muted" style={{ fontSize: 13 }}>
-                  {s.available} כרטיסים
-                </span>
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
+      <BrowseClient shows={shows} />
     </main>
   );
 }

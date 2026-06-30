@@ -46,6 +46,40 @@ export function listOpenShows() {
     .orderBy(asc(shows.startsAt));
 }
 
+/** All upcoming shows (catalog), with optional from-price + availability. */
+export function listUpcomingShows() {
+  return db
+    .select({
+      id: shows.id,
+      eventName: events.name,
+      artist: events.artist,
+      venueName: venues.name,
+      city: venues.city,
+      startsAt: shows.startsAt,
+      status: shows.status,
+      fromPriceAgorot: sql<number | null>`min(${listingPriceTiers.unitPriceAgorot})`,
+      available: sql<number>`coalesce(sum(${listings.quantityAvailable}), 0)`,
+    })
+    .from(shows)
+    .innerJoin(events, eq(shows.eventId, events.id))
+    .innerJoin(venues, eq(shows.venueId, venues.id))
+    .leftJoin(
+      listings,
+      and(
+        eq(listings.showId, shows.id),
+        eq(listings.status, "active"),
+        gt(listings.quantityAvailable, 0),
+      ),
+    )
+    .leftJoin(
+      listingPriceTiers,
+      and(eq(listingPriceTiers.listingId, listings.id), eq(listingPriceTiers.minQty, 1)),
+    )
+    .where(gt(shows.startsAt, sql`now() - interval '6 hours'`))
+    .groupBy(shows.id, events.name, events.artist, venues.name, venues.city, shows.startsAt, shows.status)
+    .orderBy(asc(shows.startsAt));
+}
+
 export async function getShow(showId: number) {
   const rows = await db
     .select({
