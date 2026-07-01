@@ -429,6 +429,22 @@ select.input { appearance: none; }
 .genrechk:has(input:checked) span { background: var(--grad); border-color: transparent; }
 .genrechk input:focus-visible + span { outline: 2px solid var(--violet); outline-offset: 1px; }
 
+/* admin users table */
+.utable-wrap { overflow-x: auto; border-radius: var(--radius); }
+.utable { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 760px; }
+.utable th, .utable td { padding: 12px 14px; text-align: right; white-space: nowrap; }
+.utable thead th {
+  color: var(--muted); font-weight: 700; font-size: 12px;
+  border-bottom: 1px solid var(--border); position: sticky; top: 0;
+  background: var(--surface-solid);
+}
+.utable tbody tr { border-bottom: 1px solid rgba(255,255,255,0.06); }
+.utable tbody tr:hover { background: rgba(123,92,255,0.08); }
+.ucell { display: flex; flex-direction: column; }
+.ucell .uname { font-weight: 800; }
+.ucell .uemail { color: var(--muted); font-size: 12px; }
+.utable td.stale { color: var(--danger); font-weight: 700; }
+
 /* bento action tiles (account hub) */
 .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
 .tile {

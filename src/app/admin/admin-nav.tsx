@@ -11,6 +11,7 @@ const tabs = [
   { href: "/admin/listings", label: "כרטיסים 🎟️" },
   { href: "/admin/requests", label: "בקשות 🔎" },
   { href: "/admin/trades", label: "עסקאות 🤝" },
+  { href: "/admin/users", label: "משתמשים 👥" },
 ];
 
 export function AdminNav() {
