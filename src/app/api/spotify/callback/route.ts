@@ -3,13 +3,13 @@ import { getSession } from "@/lib/auth";
 import { db } from "@/db";
 import { auditLog } from "@/db/schema";
 import { bumpAffinityBySlugs } from "@/db/affinity";
-import { exchangeCode, getTopArtistGenres, mapGenresToSlugCounts, redirectUri } from "@/lib/spotify";
+import { exchangeCode, getTopArtistGenres, mapGenresToSlugCounts, redirectUri, originOf } from "@/lib/spotify";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
-  const origin = url.origin;
+  const origin = originOf(req);
   const done = (status: string) => NextResponse.redirect(`${origin}/account?spotify=${status}`);
 
   const session = await getSession();

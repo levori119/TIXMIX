@@ -1,13 +1,13 @@
 import { randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import { authorizeUrl, redirectUri } from "@/lib/spotify";
+import { authorizeUrl, redirectUri, originOf } from "@/lib/spotify";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
   const session = await getSession();
-  const origin = new URL(req.url).origin;
+  const origin = originOf(req);
   if (!session) return NextResponse.redirect(`${origin}/login`);
 
   const state = randomBytes(16).toString("hex");

@@ -21,6 +21,9 @@ export async function GET() {
     db_error = (e as { code?: string; name?: string })?.code ?? (e as Error)?.name ?? "error";
   }
 
+  const spotifyConfigured =
+    !!process.env.SPOTIFY_CLIENT_ID && !!process.env.SPOTIFY_CLIENT_SECRET;
+
   return Response.json({
     ok: sessionSecret.longEnough && databaseUrlPresent && db_ok,
     nodeEnv: process.env.NODE_ENV ?? null,
@@ -28,5 +31,6 @@ export async function GET() {
     databaseUrlPresent,
     db_ok,
     db_error,
+    spotifyConfigured,
   });
 }
