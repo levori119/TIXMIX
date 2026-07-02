@@ -3,7 +3,7 @@ import { getSession } from "@/lib/auth";
 import { db } from "@/db";
 import { auditLog } from "@/db/schema";
 import { bumpAffinityBySlugs } from "@/db/affinity";
-import { exchangeCode, getTopArtistGenres, mapGenresToSlugCounts, redirectUri, originOf } from "@/lib/spotify";
+import { exchangeCode, getSpotifyTaste, mapGenresToSlugCounts, redirectUri, originOf } from "@/lib/spotify";
 
 export const dynamic = "force-dynamic";
 
@@ -25,8 +25,8 @@ export async function GET(req: Request) {
 
   try {
     const token = await exchangeCode(code, redirectUri(req));
-    const genres = await getTopArtistGenres(token);
-    const counts = mapGenresToSlugCounts(genres);
+    const taste = await getSpotifyTaste(token);
+    const counts = mapGenresToSlugCounts(taste.genres);
     const touched = await bumpAffinityBySlugs(session.uid, counts);
 
     await db.insert(auditLog).values({
@@ -34,7 +34,12 @@ export async function GET(req: Request) {
       action: "spotify_import",
       entity: "user",
       entityId: String(session.uid),
-      payload: { artistGenres: genres.length, genresTouched: touched },
+      payload: {
+        artists: taste.artistCount,
+        tracks: taste.trackCount,
+        genres: taste.genres.length,
+        genresTouched: touched,
+      },
     });
 
     const res = done(touched > 0 ? "ok" : "empty");

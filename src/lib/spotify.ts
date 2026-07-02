@@ -2,7 +2,7 @@ import "server-only";
 
 const AUTHORIZE = "https://accounts.spotify.com/authorize";
 const TOKEN = "https://accounts.spotify.com/api/token";
-const TOP_ARTISTS = "https://api.spotify.com/v1/me/top/artists?limit=50&time_range=medium_term";
+const API = "https://api.spotify.com/v1";
 export const SPOTIFY_SCOPE = "user-top-read";
 
 function clientId() {
@@ -58,14 +58,54 @@ export async function exchangeCode(code: string, redirect: string): Promise<stri
   return json.access_token;
 }
 
-export async function getTopArtistGenres(accessToken: string): Promise<string[]> {
-  const res = await fetch(TOP_ARTISTS, {
-    headers: { Authorization: `Bearer ${accessToken}` },
+async function sget<T>(path: string, token: string): Promise<T | null> {
+  const res = await fetch(`${API}${path}`, {
+    headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
   });
-  if (!res.ok) throw new Error(`top artists failed: ${res.status}`);
-  const json = (await res.json()) as { items: { genres: string[] }[] };
-  return json.items.flatMap((a) => a.genres ?? []);
+  if (!res.ok) return null;
+  return (await res.json()) as T;
+}
+
+type Artist = { id: string; genres?: string[] };
+type Track = { artists?: { id: string }[] };
+
+export type SpotifyTaste = { artistCount: number; trackCount: number; genres: string[] };
+
+/**
+ * Gather a rich taste signal: top artists across all time ranges + the artists
+ * behind top tracks, then the full artist objects (which carry `genres`).
+ */
+export async function getSpotifyTaste(token: string): Promise<SpotifyTaste> {
+  const genres: string[] = [];
+  const artistIds = new Set<string>();
+  let artistCount = 0;
+  let trackCount = 0;
+
+  for (const range of ["short_term", "medium_term", "long_term"]) {
+    const a = await sget<{ items: Artist[] }>(`/me/top/artists?limit=50&time_range=${range}`, token);
+    for (const art of a?.items ?? []) {
+      artistCount++;
+      (art.genres ?? []).forEach((g) => genres.push(g));
+      if (art.id) artistIds.add(art.id);
+    }
+  }
+
+  const t = await sget<{ items: Track[] }>(`/me/top/tracks?limit=50&time_range=medium_term`, token);
+  for (const tr of t?.items ?? []) {
+    trackCount++;
+    for (const ar of tr.artists ?? []) if (ar.id) artistIds.add(ar.id);
+  }
+
+  // fetch full artist objects (with genres) in batches of 50
+  const ids = Array.from(artistIds);
+  for (let i = 0; i < ids.length; i += 50) {
+    const batch = ids.slice(i, i + 50);
+    const ar = await sget<{ artists: Artist[] }>(`/artists?ids=${batch.join(",")}`, token);
+    for (const a of ar?.artists ?? []) (a.genres ?? []).forEach((g) => genres.push(g));
+  }
+
+  return { artistCount, trackCount, genres };
 }
 
 // map Spotify's granular English genre strings to our genre slugs
