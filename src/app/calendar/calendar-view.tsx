@@ -22,19 +22,26 @@ function ils(a: number | null) {
   return a == null ? null : `₪${Math.round(a / 100).toLocaleString("he-IL")}`;
 }
 
+const WEEKDAYS = ["א", "ב", "ג", "ד", "ה", "ו", "ש"];
+
 export function CalendarView({
   shows,
+  year,
+  month,
   monthLabel,
   prevMonth,
   nextMonth,
 }: {
   shows: CalShow[];
+  year: number;
+  month: number; // 0-based
   monthLabel: string;
   prevMonth: string;
   nextMonth: string;
 }) {
   const [q, setQ] = useState("");
   const [genre, setGenre] = useState("הכל");
+  const [view, setView] = useState<"list" | "grid">("list");
 
   const genreChips = useMemo(() => {
     const seen = new Map<string, CalGenre>();
@@ -61,12 +68,43 @@ export function CalendarView({
     return Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0]));
   }, [filtered]);
 
+  // grid: day-number -> shows
+  const byDayNum = useMemo(() => {
+    const map = new Map<number, CalShow[]>();
+    for (const s of filtered) {
+      const n = Number(s.dayNum);
+      const arr = map.get(n) ?? [];
+      arr.push(s);
+      map.set(n, arr);
+    }
+    return map;
+  }, [filtered]);
+
+  const grid = useMemo(() => {
+    const firstWeekday = new Date(year, month, 1).getDay(); // 0=Sun
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const cells: (number | null)[] = [];
+    for (let i = 0; i < firstWeekday; i++) cells.push(null);
+    for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+    while (cells.length % 7 !== 0) cells.push(null);
+    return cells;
+  }, [year, month]);
+
+  const today = new Date();
+  const isToday = (d: number) =>
+    today.getFullYear() === year && today.getMonth() === month && today.getDate() === d;
+
   return (
     <div>
       <div className="calmonth">
         <Link href={`/calendar?month=${prevMonth}`} className="chip">‹ קודם</Link>
         <span className="calmonth-label">{monthLabel}</span>
         <Link href={`/calendar?month=${nextMonth}`} className="chip">הבא ›</Link>
+      </div>
+
+      <div className="chips" style={{ marginBottom: 14 }}>
+        <button className={`chip ${view === "list" ? "active" : ""}`} onClick={() => setView("list")}>☰ רשימה</button>
+        <button className={`chip ${view === "grid" ? "active" : ""}`} onClick={() => setView("grid")}>▦ משבצות</button>
       </div>
 
       <div className="searchbar">
@@ -83,7 +121,30 @@ export function CalendarView({
         ))}
       </div>
 
-      {byDay.length === 0 ? (
+      {view === "grid" ? (
+        <div className="calgridwrap">
+          <div className="calweekhead">
+            {WEEKDAYS.map((w) => <span key={w}>{w}</span>)}
+          </div>
+          <div className="calgrid">
+            {grid.map((d, i) => {
+              if (d === null) return <div key={`e${i}`} className="calcell empty" />;
+              const list = byDayNum.get(d) ?? [];
+              return (
+                <div key={d} className={`calcell ${isToday(d) ? "today" : ""}`}>
+                  <span className="dn">{d}</span>
+                  {list.slice(0, 3).map((s) => (
+                    <Link key={s.id} href={`/shows/${s.id}`} className="calcell-item" title={s.eventName}>
+                      {s.eventName}
+                    </Link>
+                  ))}
+                  {list.length > 3 ? <span className="calcell-more">+{list.length - 3}</span> : null}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : byDay.length === 0 ? (
         <div className="card"><p className="empty">אין הופעות בחודש זה 🤷</p></div>
       ) : (
         <div className="calagenda">

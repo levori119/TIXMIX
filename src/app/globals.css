@@ -485,6 +485,31 @@ select.input { appearance: none; }
 .calitem .vn { font-size: 12px; color: var(--muted); }
 .calitem .pr { font-weight: 900; white-space: nowrap; }
 
+/* calendar grid (month cells) */
+.calweekhead { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 6px; }
+.calweekhead span { text-align: center; color: var(--muted); font-weight: 800; font-size: 13px; }
+.calgrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.calcell {
+  min-height: 98px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 6px; display: flex; flex-direction: column; gap: 3px; overflow: hidden;
+}
+.calcell.empty { background: transparent; border-color: transparent; }
+.calcell.today { border-color: var(--violet); box-shadow: 0 0 0 1px var(--violet) inset; }
+.calcell .dn { font-size: 12px; font-weight: 800; color: var(--muted); }
+.calcell.today .dn { color: var(--text); }
+.calcell-item {
+  font-size: 11px; font-weight: 700; text-decoration: none; color: var(--text);
+  background: rgba(123, 92, 255, 0.18); border-radius: 6px; padding: 2px 5px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.calcell-item:hover { background: rgba(123, 92, 255, 0.32); }
+.calcell-more { font-size: 10px; color: var(--muted); }
+@media (max-width: 600px) {
+  .calgrid, .calweekhead { gap: 3px; }
+  .calcell { min-height: 62px; padding: 3px; border-radius: 8px; }
+  .calcell-item { font-size: 9px; padding: 1px 3px; }
+}
+
 /* ad banners sidebar */
 .cal-side { position: sticky; top: 78px; display: flex; flex-direction: column; gap: 12px; }
 .adhead { font-size: 15px; font-weight: 900; color: var(--muted); }
@@ -509,9 +534,9 @@ select.input { appearance: none; }
 .banner-foot .cta { font-size: 13px; font-weight: 800; color: var(--accent); }
 /* on mobile show banners as a horizontal strip */
 @media (max-width: 899px) {
-  .cal-side { position: static; flex-direction: row; overflow-x: auto; padding-bottom: 6px; }
+  .cal-side { position: static; flex-direction: row; overflow-x: auto; padding-bottom: 6px; order: -1; }
   .cal-side .adhead { display: none; }
-  .banner { flex: 0 0 240px; }
+  .banner { flex: 0 0 230px; }
 }
 
 /* bento action tiles (account hub) */

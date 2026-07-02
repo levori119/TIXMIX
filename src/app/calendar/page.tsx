@@ -69,17 +69,25 @@ export default async function CalendarPage({
   });
 
   // personalized ad banners: shows with tickets, ranked by the user's taste
-  const banners = upcoming
+  const withTickets = upcoming
     .filter((r) => r.fromPriceAgorot != null && Number(r.available) > 0)
     .map((r) => {
       const g = genresByEvent.get(r.eventId) ?? [];
       const score = g.reduce((sum, gg) => sum + (affinity.get(gg.id) ?? 0), 0);
       return { r, g, score };
     })
-    .sort((a, b) => b.score - a.score || new Date(a.r.startsAt).getTime() - new Date(b.r.startsAt).getTime())
-    .slice(0, 5);
+    .sort((a, b) => b.score - a.score || new Date(a.r.startsAt).getTime() - new Date(b.r.startsAt).getTime());
 
-  const personalized = banners.some((b) => b.score > 0);
+  // fallback so the sidebar is never empty: soonest upcoming shows
+  const fallback = upcoming
+    .slice(0, 5)
+    .map((r) => ({ r, g: genresByEvent.get(r.eventId) ?? [], score: 0 }));
+
+  const banners = (withTickets.length > 0 ? withTickets : fallback).slice(0, 5);
+  const personalized = withTickets.length > 0 && banners.some((b) => b.score > 0);
+  const adHead = withTickets.length > 0
+    ? (personalized ? "🔥 מומלץ בשבילך" : "🎟️ כרטיסים חמים")
+    : "🔜 הופעות קרובות";
 
   return (
     <main className="container">
@@ -92,6 +100,8 @@ export default async function CalendarPage({
         <div className="cal-main">
           <CalendarView
             shows={shows}
+            year={year}
+            month={mIdx}
             monthLabel={`${MONTHS[mIdx]} ${year}`}
             prevMonth={ym(prev.getFullYear(), prev.getMonth())}
             nextMonth={ym(next.getFullYear(), next.getMonth())}
@@ -99,11 +109,10 @@ export default async function CalendarPage({
         </div>
 
         <aside className="cal-side">
-          <div className="adhead">{personalized ? "🔥 מומלץ בשבילך" : "🎟️ כרטיסים חמים"}</div>
-          {banners.length === 0 ? (
-            <div className="card"><p className="empty">אין כרגע כרטיסים למכירה.</p></div>
-          ) : (
-            banners.map(({ r, g }) => (
+          <div className="adhead">{adHead}</div>
+          {banners.map(({ r, g }) => {
+            const price = ils(r.fromPriceAgorot);
+            return (
               <Link key={r.id} href={`/shows/${r.id}`} className="banner">
                 <div className="banner-cover" style={{ background: coverGradient(r.eventName) }}>
                   <span className="ini">{initialOf(r.eventName)}</span>
@@ -114,13 +123,17 @@ export default async function CalendarPage({
                   <span className="vn">{r.venueName}{r.city ? ` · ${r.city}` : ""}</span>
                   {g.length > 0 ? <span className="gtag">{g[0].emoji} {g[0].nameHe}</span> : null}
                   <div className="banner-foot">
-                    <span className="from">{ils(r.fromPriceAgorot)} <small>החל מ-</small></span>
-                    <span className="cta">כרטיסים →</span>
+                    {price ? (
+                      <span className="from">{price} <small>החל מ-</small></span>
+                    ) : (
+                      <span className="from" style={{ fontSize: 13, color: "var(--muted)" }}>בקרוב</span>
+                    )}
+                    <span className="cta">{price ? "כרטיסים →" : "פרטים →"}</span>
                   </div>
                 </div>
               </Link>
-            ))
-          )}
+            );
+          })}
         </aside>
       </div>
     </main>
