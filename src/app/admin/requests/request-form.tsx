@@ -44,10 +44,6 @@ export function RequestForm({
           <ShowPicker name="showId" shows={shows} />
         </div>
         <div className="row">
-          <label className="label" htmlFor="r-pmin">מחיר מינ' לכרטיס (₪)</label>
-          <input className="input" id="r-pmin" name="priceMin" type="number" min="0" step="0.01" defaultValue="0" />
-        </div>
-        <div className="row">
           <label className="label" htmlFor="r-pmax">מחיר מקס' לכרטיס (₪) *</label>
           <input className="input" id="r-pmax" name="priceMax" type="number" min="0" step="0.01" required />
         </div>

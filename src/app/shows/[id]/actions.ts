@@ -20,12 +20,8 @@ export async function submitBuyRequestAction(
   if (!Number.isInteger(showId)) return { ok: false, message: "מופע לא תקין." };
 
   const priceMax = ils(String(formData.get("priceMax") ?? ""));
-  const priceMin = ils(String(formData.get("priceMin") ?? "0"));
   if (!Number.isFinite(priceMax) || priceMax <= 0) {
     return { ok: false, message: "מחיר מקסימום חייב להיות גדול מ-0." };
-  }
-  if (priceMin < 0 || priceMin > priceMax) {
-    return { ok: false, message: "טווח מחיר לא תקין." };
   }
 
   const qtyMin = Number(formData.get("qtyMin") || "1");
@@ -37,7 +33,7 @@ export async function submitBuyRequestAction(
   const req = await createBuyRequest({
     buyerId: user.id,
     showId,
-    priceMinAgorot: priceMin,
+    priceMinAgorot: 0,
     priceMaxAgorot: priceMax,
     qtyMin,
     qtyMax,

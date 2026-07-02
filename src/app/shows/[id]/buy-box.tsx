@@ -22,10 +22,6 @@ export function BuyBox({ showId, fromPrice }: { showId: number; fromPrice: strin
           <input className="input" id="b-pmax" name="priceMax" type="number" min="0" step="0.01" required />
         </div>
         <div className="row">
-          <label className="label" htmlFor="b-pmin">מחיר מינ' (₪)</label>
-          <input className="input" id="b-pmin" name="priceMin" type="number" min="0" step="0.01" defaultValue="0" />
-        </div>
-        <div className="row">
           <label className="label" htmlFor="b-qmin">כמות מינ'</label>
           <input className="input" id="b-qmin" name="qtyMin" type="number" min="1" defaultValue="1" />
         </div>
