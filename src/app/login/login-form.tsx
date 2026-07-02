@@ -12,15 +12,14 @@ export function LoginForm() {
     <form action={formAction}>
       <div className="row">
         <label className="label" htmlFor="email">
-          אימייל
+          אימייל או שם משתמש
         </label>
         <input
           className="input"
           id="email"
           name="email"
-          type="email"
+          type="text"
           autoComplete="username"
-          dir="ltr"
           required
         />
       </div>

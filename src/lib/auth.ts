@@ -6,7 +6,7 @@ import {
   createHmac,
 } from "node:crypto";
 import { cookies } from "next/headers";
-import { eq } from "drizzle-orm";
+import { eq, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 
@@ -130,15 +130,21 @@ export async function registerClient(
   return row;
 }
 
-/** Authenticate by email + password against the users table. */
+/** Authenticate by email OR display name (case-insensitive) + password. */
 export async function authenticate(
-  email: string,
+  identifier: string,
   password: string,
 ): Promise<{ id: number; role: string; displayName: string } | null> {
+  const id = identifier.trim();
   const rows = await db
     .select()
     .from(users)
-    .where(eq(users.email, email.toLowerCase().trim()));
+    .where(
+      or(
+        eq(users.email, id.toLowerCase()),
+        sql`lower(${users.displayName}) = lower(${id})`,
+      ),
+    );
   const user = rows[0];
   if (!user) return null;
   if (!verifyPassword(password, user.passwordHash)) return null;
