@@ -1,5 +1,5 @@
 import "server-only";
-import { and, eq, gt, asc, sql } from "drizzle-orm";
+import { and, eq, gt, gte, lt, asc, sql } from "drizzle-orm";
 import { db } from "./index";
 import {
   listings,
@@ -78,6 +78,40 @@ export function listUpcomingShows() {
     )
     .where(gt(shows.startsAt, sql`now() - interval '6 hours'`))
     .groupBy(shows.id, events.id, events.name, events.artist, venues.name, venues.city, shows.startsAt, shows.status)
+    .orderBy(asc(shows.startsAt));
+}
+
+/** All shows within [from, to) with optional from-price + availability. */
+export function listShowsInRange(from: Date, to: Date) {
+  return db
+    .select({
+      id: shows.id,
+      eventId: events.id,
+      eventName: events.name,
+      venueName: venues.name,
+      city: venues.city,
+      startsAt: shows.startsAt,
+      status: shows.status,
+      fromPriceAgorot: sql<number | null>`min(${listingPriceTiers.unitPriceAgorot})`,
+      available: sql<number>`coalesce(sum(${listings.quantityAvailable}), 0)`,
+    })
+    .from(shows)
+    .innerJoin(events, eq(shows.eventId, events.id))
+    .innerJoin(venues, eq(shows.venueId, venues.id))
+    .leftJoin(
+      listings,
+      and(
+        eq(listings.showId, shows.id),
+        eq(listings.status, "active"),
+        gt(listings.quantityAvailable, 0),
+      ),
+    )
+    .leftJoin(
+      listingPriceTiers,
+      and(eq(listingPriceTiers.listingId, listings.id), eq(listingPriceTiers.minQty, 1)),
+    )
+    .where(and(gte(shows.startsAt, from), lt(shows.startsAt, to)))
+    .groupBy(shows.id, events.id, events.name, venues.name, venues.city, shows.startsAt, shows.status)
     .orderBy(asc(shows.startsAt));
 }
 

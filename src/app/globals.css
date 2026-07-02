@@ -454,6 +454,66 @@ select.input { appearance: none; }
 .tastescore { font-size: 13px; color: var(--muted); text-align: left; }
 @media (max-width: 540px) { .tasterow { grid-template-columns: 110px 1fr 30px; } }
 
+/* calendar */
+.cal-layout { display: grid; grid-template-columns: 1fr; gap: 22px; }
+@media (min-width: 900px) { .cal-layout { grid-template-columns: 1fr 300px; align-items: start; } }
+
+.calmonth { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+.calmonth-label { font-size: 20px; font-weight: 900; }
+
+.calagenda { display: flex; flex-direction: column; gap: 12px; }
+.calday {
+  display: grid; grid-template-columns: 56px 1fr; gap: 12px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px;
+}
+.caldaybadge {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: var(--grad); border-radius: 14px; padding: 8px 4px; color: #fff; height: fit-content;
+}
+.caldaybadge .d { font-size: 24px; font-weight: 900; line-height: 1; }
+.caldaybadge .w { font-size: 11px; opacity: 0.9; margin-top: 2px; }
+.callist { display: flex; flex-direction: column; gap: 8px; }
+.calitem {
+  display: grid; grid-template-columns: 48px 1fr auto; align-items: center; gap: 10px;
+  text-decoration: none; color: var(--text); padding: 8px 10px; border-radius: 12px;
+  border: 1px solid transparent;
+}
+.calitem:hover { background: rgba(123,92,255,0.10); border-color: var(--border); }
+.calitem .t { font-weight: 800; font-size: 14px; color: var(--muted); }
+.calitem .info { display: flex; flex-direction: column; min-width: 0; }
+.calitem .ev { font-weight: 800; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.calitem .vn { font-size: 12px; color: var(--muted); }
+.calitem .pr { font-weight: 900; white-space: nowrap; }
+
+/* ad banners sidebar */
+.cal-side { position: sticky; top: 78px; display: flex; flex-direction: column; gap: 12px; }
+.adhead { font-size: 15px; font-weight: 900; color: var(--muted); }
+.banner {
+  display: block; text-decoration: none; color: var(--text);
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
+  transition: transform 0.12s ease, border-color 0.12s ease;
+}
+.banner:hover { transform: translateY(-2px); border-color: var(--violet); }
+.banner-cover { position: relative; aspect-ratio: 16/7; display: grid; place-items: center; }
+.banner-cover .ini { font-size: 40px; font-weight: 900; color: rgba(255,255,255,0.92); }
+.banner-cover .promo {
+  position: absolute; top: 8px; inset-inline-start: 8px; font-size: 10px; font-weight: 700;
+  background: rgba(0,0,0,0.45); color: #fff; padding: 3px 8px; border-radius: 999px; letter-spacing: 0.5px;
+}
+.banner-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 5px; }
+.banner-body .ev { font-weight: 800; }
+.banner-body .vn { font-size: 12px; color: var(--muted); }
+.banner-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
+.banner-foot .from { font-weight: 900; }
+.banner-foot .from small { font-weight: 600; color: var(--muted); font-size: 11px; }
+.banner-foot .cta { font-size: 13px; font-weight: 800; color: var(--accent); }
+/* on mobile show banners as a horizontal strip */
+@media (max-width: 899px) {
+  .cal-side { position: static; flex-direction: row; overflow-x: auto; padding-bottom: 6px; }
+  .cal-side .adhead { display: none; }
+  .banner { flex: 0 0 240px; }
+}
+
 /* bento action tiles (account hub) */
 .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
 .tile {

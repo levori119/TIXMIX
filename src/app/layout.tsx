@@ -29,6 +29,7 @@ export default function RootLayout({
           </a>
           <div className="nav-links">
             <a href="/browse">כרטיסים</a>
+            <a href="/calendar">יומן</a>
             <a href="/sell">מכירה</a>
             <a href="/account">החשבון שלי</a>
             <a href="/login">כניסה</a>

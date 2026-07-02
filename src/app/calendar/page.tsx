@@ -1,0 +1,128 @@
+import Link from "next/link";
+import { listShowsInRange, listUpcomingShows } from "@/db/public";
+import { genresForEventIds } from "@/db/genres";
+import { getAffinityMap } from "@/db/affinity";
+import { currentUser } from "@/lib/auth";
+import { coverGradient, initialOf } from "@/lib/cover";
+import { CalendarView, type CalShow } from "./calendar-view";
+
+export const dynamic = "force-dynamic";
+
+const MONTHS = [
+  "ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני",
+  "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר",
+];
+
+function ym(y: number, m: number) {
+  return `${y}-${String(m + 1).padStart(2, "0")}`;
+}
+function ils(a: number | null) {
+  return a == null ? null : `₪${Math.round(a / 100).toLocaleString("he-IL")}`;
+}
+
+export default async function CalendarPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ month?: string }>;
+}) {
+  const { month } = await searchParams;
+  const now = new Date();
+  let year = now.getFullYear();
+  let mIdx = now.getMonth();
+  if (month && /^\d{4}-\d{2}$/.test(month)) {
+    const [y, m] = month.split("-").map(Number);
+    year = y;
+    mIdx = m - 1;
+  }
+  const from = new Date(year, mIdx, 1);
+  const to = new Date(year, mIdx + 1, 1);
+  const prev = new Date(year, mIdx - 1, 1);
+  const next = new Date(year, mIdx + 1, 1);
+
+  const [monthRows, upcoming, user] = await Promise.all([
+    listShowsInRange(from, to),
+    listUpcomingShows(),
+    currentUser(),
+  ]);
+
+  const eventIds = Array.from(new Set([...monthRows, ...upcoming].map((r) => r.eventId)));
+  const [genresByEvent, affinity] = await Promise.all([
+    genresForEventIds(eventIds),
+    user ? getAffinityMap(user.id) : Promise.resolve(new Map<number, number>()),
+  ]);
+
+  const shows: CalShow[] = monthRows.map((r) => {
+    const d = new Date(r.startsAt);
+    return {
+      id: r.id,
+      eventName: r.eventName,
+      venueName: r.venueName,
+      city: r.city,
+      dateKey: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`,
+      dayNum: String(d.getDate()),
+      weekday: d.toLocaleDateString("he-IL", { weekday: "short" }),
+      timeStr: d.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" }),
+      fromPriceAgorot: r.fromPriceAgorot,
+      available: Number(r.available),
+      genres: (genresByEvent.get(r.eventId) ?? []).map((g) => ({ slug: g.slug, nameHe: g.nameHe, emoji: g.emoji })),
+    };
+  });
+
+  // personalized ad banners: shows with tickets, ranked by the user's taste
+  const banners = upcoming
+    .filter((r) => r.fromPriceAgorot != null && Number(r.available) > 0)
+    .map((r) => {
+      const g = genresByEvent.get(r.eventId) ?? [];
+      const score = g.reduce((sum, gg) => sum + (affinity.get(gg.id) ?? 0), 0);
+      return { r, g, score };
+    })
+    .sort((a, b) => b.score - a.score || new Date(a.r.startsAt).getTime() - new Date(b.r.startsAt).getTime())
+    .slice(0, 5);
+
+  const personalized = banners.some((b) => b.score > 0);
+
+  return (
+    <main className="container">
+      <div className="greet">
+        <div className="hi">יומן ההופעות 📅</div>
+        <div className="tag">{shows.length} הופעות ב{MONTHS[mIdx]} {year}</div>
+      </div>
+
+      <div className="cal-layout">
+        <div className="cal-main">
+          <CalendarView
+            shows={shows}
+            monthLabel={`${MONTHS[mIdx]} ${year}`}
+            prevMonth={ym(prev.getFullYear(), prev.getMonth())}
+            nextMonth={ym(next.getFullYear(), next.getMonth())}
+          />
+        </div>
+
+        <aside className="cal-side">
+          <div className="adhead">{personalized ? "🔥 מומלץ בשבילך" : "🎟️ כרטיסים חמים"}</div>
+          {banners.length === 0 ? (
+            <div className="card"><p className="empty">אין כרגע כרטיסים למכירה.</p></div>
+          ) : (
+            banners.map(({ r, g }) => (
+              <Link key={r.id} href={`/shows/${r.id}`} className="banner">
+                <div className="banner-cover" style={{ background: coverGradient(r.eventName) }}>
+                  <span className="ini">{initialOf(r.eventName)}</span>
+                  <span className="promo">מודעה</span>
+                </div>
+                <div className="banner-body">
+                  <span className="ev">{r.eventName}</span>
+                  <span className="vn">{r.venueName}{r.city ? ` · ${r.city}` : ""}</span>
+                  {g.length > 0 ? <span className="gtag">{g[0].emoji} {g[0].nameHe}</span> : null}
+                  <div className="banner-foot">
+                    <span className="from">{ils(r.fromPriceAgorot)} <small>החל מ-</small></span>
+                    <span className="cta">כרטיסים →</span>
+                  </div>
+                </div>
+              </Link>
+            ))
+          )}
+        </aside>
+      </div>
+    </main>
+  );
+}
