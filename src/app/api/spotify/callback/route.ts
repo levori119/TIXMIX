@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { db } from "@/db";
 import { auditLog } from "@/db/schema";
-import { bumpAffinityBySlugs } from "@/db/affinity";
+import { bumpAffinityBySlugs, bumpAffinityByArtistNames } from "@/db/affinity";
 import { exchangeCode, getSpotifyTaste, mapGenresToSlugCounts, redirectUri, originOf } from "@/lib/spotify";
 
 export const dynamic = "force-dynamic";
@@ -26,8 +26,11 @@ export async function GET(req: Request) {
   try {
     const token = await exchangeCode(code, redirectUri(req));
     const taste = await getSpotifyTaste(token);
-    const counts = mapGenresToSlugCounts(taste.genres);
-    const touched = await bumpAffinityBySlugs(session.uid, counts);
+
+    // 1) if Spotify returned genres, use them; 2) always also derive from names
+    const genreTouched = await bumpAffinityBySlugs(session.uid, mapGenresToSlugCounts(taste.genres));
+    const byName = await bumpAffinityByArtistNames(session.uid, taste.artistNames);
+    const touched = genreTouched + byName.genresTouched;
 
     await db.insert(auditLog).values({
       actorId: session.uid,
@@ -37,8 +40,11 @@ export async function GET(req: Request) {
       payload: {
         artists: taste.artistCount,
         tracks: taste.trackCount,
-        genres: taste.genres.length,
+        spotifyGenres: taste.genres.length,
+        namedArtists: taste.artistNames.length,
+        matchedArtists: byName.matchedArtists,
         genresTouched: touched,
+        sample: taste.artistNames.slice(0, 12),
       },
     });
 

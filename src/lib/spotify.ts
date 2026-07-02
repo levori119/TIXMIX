@@ -67,10 +67,15 @@ async function sget<T>(path: string, token: string): Promise<T | null> {
   return (await res.json()) as T;
 }
 
-type Artist = { id: string; genres?: string[] };
-type Track = { artists?: { id: string }[] };
+type Artist = { id: string; name?: string; genres?: string[] };
+type Track = { artists?: { id: string; name?: string }[] };
 
-export type SpotifyTaste = { artistCount: number; trackCount: number; genres: string[] };
+export type SpotifyTaste = {
+  artistCount: number;
+  trackCount: number;
+  genres: string[];
+  artistNames: string[];
+};
 
 /**
  * Gather a rich taste signal: top artists across all time ranges + the artists
@@ -78,6 +83,7 @@ export type SpotifyTaste = { artistCount: number; trackCount: number; genres: st
  */
 export async function getSpotifyTaste(token: string): Promise<SpotifyTaste> {
   const genres: string[] = [];
+  const names = new Set<string>();
   const artistIds = new Set<string>();
   let artistCount = 0;
   let trackCount = 0;
@@ -87,6 +93,7 @@ export async function getSpotifyTaste(token: string): Promise<SpotifyTaste> {
     for (const art of a?.items ?? []) {
       artistCount++;
       (art.genres ?? []).forEach((g) => genres.push(g));
+      if (art.name) names.add(art.name);
       if (art.id) artistIds.add(art.id);
     }
   }
@@ -94,18 +101,24 @@ export async function getSpotifyTaste(token: string): Promise<SpotifyTaste> {
   const t = await sget<{ items: Track[] }>(`/me/top/tracks?limit=50&time_range=medium_term`, token);
   for (const tr of t?.items ?? []) {
     trackCount++;
-    for (const ar of tr.artists ?? []) if (ar.id) artistIds.add(ar.id);
+    for (const ar of tr.artists ?? []) {
+      if (ar.name) names.add(ar.name);
+      if (ar.id) artistIds.add(ar.id);
+    }
   }
 
-  // fetch full artist objects (with genres) in batches of 50
+  // fetch full artist objects (name + any genres) in batches of 50
   const ids = Array.from(artistIds);
   for (let i = 0; i < ids.length; i += 50) {
     const batch = ids.slice(i, i + 50);
     const ar = await sget<{ artists: Artist[] }>(`/artists?ids=${batch.join(",")}`, token);
-    for (const a of ar?.artists ?? []) (a.genres ?? []).forEach((g) => genres.push(g));
+    for (const a of ar?.artists ?? []) {
+      (a.genres ?? []).forEach((g) => genres.push(g));
+      if (a.name) names.add(a.name);
+    }
   }
 
-  return { artistCount, trackCount, genres };
+  return { artistCount, trackCount, genres, artistNames: Array.from(names) };
 }
 
 // map Spotify's granular English genre strings to our genre slugs

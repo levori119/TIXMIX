@@ -1,7 +1,8 @@
 import "server-only";
 import { eq, and, sql, desc } from "drizzle-orm";
 import { db } from "./index";
-import { userGenreAffinity, eventGenres, shows, genres } from "./schema";
+import { userGenreAffinity, eventGenres, shows, genres, events } from "./schema";
+import { STAR_ARTISTS, normalizeArtist } from "@/lib/artist-genres";
 
 /**
  * Record a taste signal: bump the user's affinity for every genre of the
@@ -49,6 +50,45 @@ export async function bumpAffinityBySlugs(
     touched++;
   }
   return touched;
+}
+
+/**
+ * Derive genre affinity from Spotify artist NAMES (Spotify no longer returns
+ * artist genres). Matches names against our events catalog + a curated map.
+ */
+export async function bumpAffinityByArtistNames(
+  userId: number,
+  names: string[],
+): Promise<{ matchedArtists: number; genresTouched: number }> {
+  const norm = Array.from(new Set(names.map(normalizeArtist))).filter(Boolean);
+  if (norm.length === 0) return { matchedArtists: 0, genresTouched: 0 };
+
+  // catalog: normalized events.artist -> slugs (from our own genre tagging)
+  const catalog = await db
+    .select({ artist: events.artist, slug: genres.slug })
+    .from(events)
+    .innerJoin(eventGenres, eq(eventGenres.eventId, events.id))
+    .innerJoin(genres, eq(genres.id, eventGenres.genreId));
+  const catalogMap = new Map<string, string[]>();
+  for (const r of catalog) {
+    if (!r.artist) continue;
+    const key = normalizeArtist(r.artist);
+    const arr = catalogMap.get(key) ?? [];
+    arr.push(r.slug);
+    catalogMap.set(key, arr);
+  }
+
+  const slugCounts = new Map<string, number>();
+  const matched = new Set<string>();
+  for (const name of norm) {
+    const slugs = catalogMap.get(name) ?? STAR_ARTISTS[name];
+    if (!slugs) continue;
+    matched.add(name);
+    for (const s of slugs) slugCounts.set(s, (slugCounts.get(s) ?? 0) + 1);
+  }
+
+  const genresTouched = await bumpAffinityBySlugs(userId, slugCounts);
+  return { matchedArtists: matched.size, genresTouched };
 }
 
 /** Map of genreId -> score for a user. */
